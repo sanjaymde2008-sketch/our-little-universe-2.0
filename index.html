@@ -1330,6 +1330,7 @@
 <!-- ====== FIREBASE SDK (CDN) ====== -->
 <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore-compat.js"></script>
 
 <!-- ====== JAVASCRIPT ====== -->
@@ -1351,6 +1352,7 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
+        const realtimeDB = firebase.database(); // Realtime Database initialized
 
         // ========== CREDENTIALS ==========
         const VALID_USER = 'Sanvitha';
@@ -1606,9 +1608,7 @@
             if (u === VALID_USER && p === VALID_PASS) {
                 errorDiv.textContent = '';
                 try {
-                    // Sign in to Firebase
                     await auth.signInWithEmailAndPassword('savitha@ourlittleuniverse.com', '2325love');
-                    // Show dashboard
                     loginPage.style.display = 'none';
                     dashboard.style.display = 'block';
                     lettersPage.style.display = 'none';
@@ -1617,7 +1617,6 @@
                     checkAnniversary();
                     for (let i = 0; i < 10; i++) setTimeout(spawnHeart, i * 300);
                 } catch (firebaseError) {
-                    // If Firebase auth fails, still allow access (fallback)
                     console.warn('Firebase auth failed, but continuing:', firebaseError.message);
                     loginPage.style.display = 'none';
                     dashboard.style.display = 'block';
@@ -1779,6 +1778,21 @@
             });
 
             setInterval(spawnHeart, 3000);
+
+            // ====== TEST REALTIME DATABASE ======
+            try {
+                const testRef = realtimeDB.ref('test');
+                testRef.set({
+                    message: 'Our Little Universe is connected! ❤️',
+                    timestamp: Date.now()
+                }).then(() => {
+                    console.log('✅ Realtime Database connected and test data written!');
+                }).catch((err) => {
+                    console.warn('⚠️ Realtime Database test write failed:', err);
+                });
+            } catch (e) {
+                console.warn('⚠️ Realtime Database not available:', e);
+            }
         }
 
         // ========== ANNIVERSARY BAR ==========
@@ -2152,6 +2166,9 @@
                 console.log('❌ Firebase: No user signed in');
             }
         });
+
+        // ========== REALTIME DATABASE REFERENCE ==========
+        console.log('✅ Firebase Realtime Database initialized:', realtimeDB);
 
     })();
 </script>
