@@ -1338,7 +1338,12 @@
     (function() {
         'use strict';
 
-        // ========== FIREBASE CONFIG ==========
+        // =============================================
+        // FIX #1: Define firebaseConfig and initialize Firebase FIRST
+        // BEFORE any other code that depends on Firebase
+        // =============================================
+        console.log('🔍 [DEBUG] Starting Firebase initialization...');
+
         const firebaseConfig = {
             apiKey: "AIzaSyAtXbt8FYjAXNDmsf8WoqKwOdvcavLHH68",
             authDomain: "our-little-universe-d5651.firebaseapp.com",
@@ -1350,9 +1355,69 @@
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
+        console.log('✅ [DEBUG] Firebase App initialized');
+
+        // Get Firebase services
         const auth = firebase.auth();
+        console.log('✅ [DEBUG] Firebase Auth initialized');
+
         const db = firebase.firestore();
-        const realtimeDB = firebase.database(); // Realtime Database initialized
+        console.log('✅ [DEBUG] Firebase Firestore initialized');
+
+        const realtimeDB = firebase.database();
+        console.log('✅ [DEBUG] Firebase Realtime Database initialized');
+
+        // =============================================
+        // FIX #2: Test Realtime Database write immediately
+        // after initialization, NOT inside initDashboard()
+        // This ensures the write happens regardless of login state
+        // =============================================
+        console.log('🔍 [DEBUG] Attempting Realtime Database test write...');
+
+        try {
+            const testRef = realtimeDB.ref('test');
+            console.log('🔍 [DEBUG] Got test reference:', testRef.toString());
+
+            testRef.set({
+                message: 'Our Little Universe is connected! ❤️',
+                timestamp: Date.now(),
+                debugInfo: 'Write attempted at ' + new Date().toISOString()
+            }).then(() => {
+                console.log('✅ [DEBUG] SUCCESS! Realtime Database test write completed!');
+                console.log('✅ [DEBUG] Data written to path: /test');
+            }).catch((err) => {
+                console.error('❌ [DEBUG] Realtime Database test write FAILED:', err);
+                console.error('❌ [DEBUG] Error details:', err.message, err.code);
+            });
+        } catch (e) {
+            console.error('❌ [DEBUG] Realtime Database test write exception:', e);
+        }
+
+        // Also verify database connection by reading
+        console.log('🔍 [DEBUG] Verifying Realtime Database connection...');
+        realtimeDB.ref('.info/connected').on('value', function(snap) {
+            if (snap.val() === true) {
+                console.log('✅ [DEBUG] Realtime Database connection: ONLINE');
+            } else {
+                console.log('❌ [DEBUG] Realtime Database connection: OFFLINE');
+            }
+        });
+
+        // =============================================
+        // FIX #3: Also set up a listener to confirm data exists
+        // =============================================
+        realtimeDB.ref('test').on('value', function(snapshot) {
+            const data = snapshot.val();
+            if (data) {
+                console.log('✅ [DEBUG] Data found at /test:', data);
+            } else {
+                console.log('🔍 [DEBUG] No data yet at /test - waiting for write...');
+            }
+        });
+
+        // =============================================
+        // END OF FIREBASE FIXES - ALL EXISTING FEATURES BELOW REMAIN UNCHANGED
+        // =============================================
 
         // ========== CREDENTIALS ==========
         const VALID_USER = 'Sanvitha';
@@ -1728,6 +1793,8 @@
         let currentImageIndex = 0;
 
         function initDashboard() {
+            console.log('🔍 [DEBUG] initDashboard() called - dashboard is now visible');
+
             buildGallery();
             buildLettersPage();
             updateCounters();
@@ -1779,20 +1846,22 @@
 
             setInterval(spawnHeart, 3000);
 
-            // ====== TEST REALTIME DATABASE ======
-            try {
-                const testRef = realtimeDB.ref('test');
-                testRef.set({
-                    message: 'Our Little Universe is connected! ❤️',
-                    timestamp: Date.now()
-                }).then(() => {
-                    console.log('✅ Realtime Database connected and test data written!');
-                }).catch((err) => {
-                    console.warn('⚠️ Realtime Database test write failed:', err);
-                });
-            } catch (e) {
-                console.warn('⚠️ Realtime Database not available:', e);
-            }
+            // =============================================
+            // FIX #4: This code is now REMOVED from here
+            // The Realtime Database test write now happens
+            // immediately after Firebase initialization above
+            // =============================================
+            // OLD CODE (commented out):
+            // try {
+            //     const testRef = realtimeDB.ref('test');
+            //     testRef.set({ ... });
+            // } catch (e) { ... }
+            // 
+            // This was the BUG - the code was inside initDashboard()
+            // which only executes AFTER login, but Firebase Auth
+            // was failing, so the database write never happened.
+            // Now the write happens IMMEDIATELY after Firebase init.
+            // =============================================
         }
 
         // ========== ANNIVERSARY BAR ==========
@@ -2167,8 +2236,7 @@
             }
         });
 
-        // ========== REALTIME DATABASE REFERENCE ==========
-        console.log('✅ Firebase Realtime Database initialized:', realtimeDB);
+        console.log('✅ [DEBUG] All Firebase services initialized and test write attempted.');
 
     })();
 </script>
