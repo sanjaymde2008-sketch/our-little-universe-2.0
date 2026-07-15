@@ -1327,10 +1327,30 @@
     <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
 </audio>
 
+<!-- ====== FIREBASE SDK (CDN) ====== -->
+<script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore-compat.js"></script>
+
 <!-- ====== JAVASCRIPT ====== -->
 <script>
     (function() {
         'use strict';
+
+        // ========== FIREBASE CONFIG ==========
+        const firebaseConfig = {
+            apiKey: "AIzaSyAtXbt8FYjAXNDmsf8WoqKwOdvcavLHH68",
+            authDomain: "our-little-universe-d5651.firebaseapp.com",
+            projectId: "our-little-universe-d5651",
+            storageBucket: "our-little-universe-d5651.firebasestorage.app",
+            messagingSenderId: "1034933912289",
+            appId: "1:1034933912289:web:ffac04e076b14dbe112da0"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
 
         // ========== CREDENTIALS ==========
         const VALID_USER = 'Sanvitha';
@@ -1338,8 +1358,8 @@
 
         // ========== BIRTHDAYS ==========
         const BIRTHDAYS = {
-            sanjuu: new Date(2008, 6, 23),
-            savitha: new Date(2007, 9, 10)
+            sanjuu: new Date(2008, 6, 23),   // July 23, 2008
+            savitha: new Date(2007, 9, 25)   // October 25, 2007
         };
 
         // ========== DOM REFS ==========
@@ -1485,7 +1505,9 @@
             '🌹💖 Happy Birthday, my gorgeous Savitha Mah! You are the most precious person in my life. 💕',
             '🎉🥳 Happy Birthday, Savitha Mah! May your day be as beautiful as your heart. 💖✨',
             '💕🎂 Happy Birthday to the one who makes my heart skip a beat, Savitha Mah! I love you endlessly. 💖',
-            '🌟🎉 Happy Birthday, Savitha Mah! You are my dream come true, my forever love. 💕'
+            '🌟🎉 Happy Birthday, Savitha Mah! You are my dream come true, my forever love. 💕',
+            '🎈🎊 Happy Birthday, Savitha Mah! Another year of your beautiful smile lighting up my world. 💖',
+            '💝🌹 Happy Birthday, my dearest Savitha Mah! You are my forever and always. ✨'
         ];
 
         // ========== LOADING SCREEN ==========
@@ -1508,7 +1530,6 @@
         // ========== ANIMATED BACKGROUND ==========
         function createBackground() {
             const container = document.getElementById('bgParticles');
-            // Stars
             for (let i = 0; i < 60; i++) {
                 const star = document.createElement('div');
                 star.className = 'bg-star';
@@ -1521,7 +1542,6 @@
                 star.style.opacity = 0.2 + Math.random() * 0.4;
                 container.appendChild(star);
             }
-            // Floating hearts
             const heartSymbols = ['❤️', '💕', '💖'];
             for (let i = 0; i < 8; i++) {
                 const heart = document.createElement('div');
@@ -1533,7 +1553,6 @@
                 heart.style.animationDelay = (Math.random() * 10) + 's';
                 container.appendChild(heart);
             }
-            // Sparkles
             for (let i = 0; i < 15; i++) {
                 const sparkle = document.createElement('div');
                 sparkle.className = 'bg-sparkle';
@@ -1564,7 +1583,6 @@
         createHeroHearts();
 
         // ========== CURSOR EFFECT ==========
-        let cursorTimeout;
         document.addEventListener('mousemove', function(e) {
             if (window.innerWidth < 768) return;
             if (document.querySelector('.cursor-heart')) return;
@@ -1580,20 +1598,35 @@
         });
 
         // ========== LOGIN LOGIC ==========
-        function handleLogin(e) {
+        async function handleLogin(e) {
             e.preventDefault();
             const u = usernameInput.value.trim();
             const p = passwordInput.value.trim();
 
             if (u === VALID_USER && p === VALID_PASS) {
                 errorDiv.textContent = '';
-                loginPage.style.display = 'none';
-                dashboard.style.display = 'block';
-                lettersPage.style.display = 'none';
-                initDashboard();
-                playMusic();
-                checkAnniversary();
-                for (let i = 0; i < 10; i++) setTimeout(spawnHeart, i * 300);
+                try {
+                    // Sign in to Firebase
+                    await auth.signInWithEmailAndPassword('savitha@ourlittleuniverse.com', '2325love');
+                    // Show dashboard
+                    loginPage.style.display = 'none';
+                    dashboard.style.display = 'block';
+                    lettersPage.style.display = 'none';
+                    initDashboard();
+                    playMusic();
+                    checkAnniversary();
+                    for (let i = 0; i < 10; i++) setTimeout(spawnHeart, i * 300);
+                } catch (firebaseError) {
+                    // If Firebase auth fails, still allow access (fallback)
+                    console.warn('Firebase auth failed, but continuing:', firebaseError.message);
+                    loginPage.style.display = 'none';
+                    dashboard.style.display = 'block';
+                    lettersPage.style.display = 'none';
+                    initDashboard();
+                    playMusic();
+                    checkAnniversary();
+                    for (let i = 0; i < 10; i++) setTimeout(spawnHeart, i * 300);
+                }
             } else {
                 errorDiv.textContent = '💔 wrong credentials, my love.';
                 loginCard.style.animation = 'shake 0.4s ease';
@@ -1609,13 +1642,20 @@
         passwordInput.value = '';
 
         // ========== LOGOUT ==========
-        logoutBtn.addEventListener('click', function() {
+        async function logout() {
+            try {
+                await auth.signOut();
+            } catch (e) {
+                console.warn('Firebase signout error:', e);
+            }
             dashboard.style.display = 'none';
             loginPage.style.display = 'flex';
             lettersPage.style.display = 'none';
             bgMusic.pause();
             document.querySelectorAll('.floating-el, .confetti-piece').forEach(el => el.remove());
-        });
+        }
+
+        logoutBtn.addEventListener('click', logout);
 
         // ========== MUSIC ==========
         function playMusic() {
@@ -1803,12 +1843,10 @@
 
         // ========== QUOTES ==========
         let quoteIndex = 0;
-        let quoteTimeout;
 
         function rotateQuote() {
             loveQuote.textContent = QUOTES[quoteIndex];
             quoteIndex = (quoteIndex + 1) % QUOTES.length;
-            // Sparkle effect around quote
             const container = loveQuote.parentElement;
             for (let i = 0; i < 6; i++) {
                 setTimeout(() => {
@@ -2105,6 +2143,15 @@
             }
         `;
         document.head.appendChild(styleSheet);
+
+        // ========== FIREBASE AUTH STATE ==========
+        auth.onAuthStateChanged(function(user) {
+            if (user) {
+                console.log('✅ Firebase: User signed in:', user.email);
+            } else {
+                console.log('❌ Firebase: No user signed in');
+            }
+        });
 
     })();
 </script>
