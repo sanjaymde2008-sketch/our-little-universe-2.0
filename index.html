@@ -603,7 +603,7 @@
             position: relative;
             z-index: 1;
         }
-        /* ========== GALLERY ========== */
+        /* ========== GALLERY - FIXED 4-COLUMN LAYOUT WITH NORMAL SIZE ========== */
         .gallery-section {
             margin-bottom: 1.2rem;
         }
@@ -619,7 +619,7 @@
         .gallery-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 14px;
+            gap: 16px;
         }
         .memory-card {
             position: relative;
@@ -634,8 +634,10 @@
             cursor: pointer;
             transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
             animation: floatMemory 5s ease-in-out infinite alternate;
+            width: 100%;
+            max-width: 100%;
         }
-        /* Staggered animation delays for up to 21 images */
+        /* Staggered animation delays for all 21 images */
         .memory-card:nth-child(1) { animation-delay: 0s; }
         .memory-card:nth-child(2) { animation-delay: 0.15s; }
         .memory-card:nth-child(3) { animation-delay: 0.3s; }
@@ -1115,7 +1117,7 @@
         }
         /* ========== RESPONSIVE ========== */
         @media (max-width: 900px) {
-            .gallery-grid { grid-template-columns: repeat(4, 1fr); gap: 10px; }
+            .gallery-grid { grid-template-columns: repeat(4, 1fr); gap: 12px; }
         }
         @media (max-width: 768px) {
             .hero-section h1 { font-size: 2.2rem; }
@@ -1132,7 +1134,7 @@
             .header-center { flex-direction: column; gap: 8px; }
             .header-clock { font-size: 1.2rem; justify-content: center; }
             .greeting { font-size: 0.9rem; justify-content: center; }
-            .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+            .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
             .love-whispers { flex-direction: column; gap: 10px; }
             .anniversary-popup .popup-content { padding: 2rem 1.5rem; }
             .anniversary-popup .popup-content h2 { font-size: 2.2rem; }
@@ -1154,7 +1156,7 @@
             .hero-section h1 { font-size: 1.8rem; }
         }
         @media (max-width: 400px) {
-            .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+            .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
             .memory-card { border-radius: 14px; }
             .login-card { padding: 1.5rem 1rem; }
             .brand h1 { font-size: 2rem; }
@@ -1273,7 +1275,7 @@
         <i class="fas fa-arrow-right" style="font-size:1.2rem; color:#b28b9a;"></i>
     </div>
 
-    <!-- Floating Memory Gallery -->
+    <!-- Floating Memory Gallery - Fixed 4 columns -->
     <div class="gallery-section">
         <h3><i class="fas fa-images"></i> Floating Memories</h3>
         <div class="gallery-grid" id="galleryGrid"></div>
