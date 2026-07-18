@@ -618,7 +618,7 @@
         }
         .gallery-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             gap: 14px;
         }
         .memory-card {
@@ -636,13 +636,26 @@
             animation: floatMemory 5s ease-in-out infinite alternate;
         }
         .memory-card:nth-child(1) { animation-delay: 0s; }
-        .memory-card:nth-child(2) { animation-delay: 0.3s; }
-        .memory-card:nth-child(3) { animation-delay: 0.6s; }
-        .memory-card:nth-child(4) { animation-delay: 0.9s; }
-        .memory-card:nth-child(5) { animation-delay: 0.4s; }
-        .memory-card:nth-child(6) { animation-delay: 0.7s; }
-        .memory-card:nth-child(7) { animation-delay: 0.2s; }
-        .memory-card:nth-child(8) { animation-delay: 0.8s; }
+        .memory-card:nth-child(2) { animation-delay: 0.15s; }
+        .memory-card:nth-child(3) { animation-delay: 0.3s; }
+        .memory-card:nth-child(4) { animation-delay: 0.45s; }
+        .memory-card:nth-child(5) { animation-delay: 0.6s; }
+        .memory-card:nth-child(6) { animation-delay: 0.75s; }
+        .memory-card:nth-child(7) { animation-delay: 0.9s; }
+        .memory-card:nth-child(8) { animation-delay: 0.05s; }
+        .memory-card:nth-child(9) { animation-delay: 0.2s; }
+        .memory-card:nth-child(10) { animation-delay: 0.35s; }
+        .memory-card:nth-child(11) { animation-delay: 0.5s; }
+        .memory-card:nth-child(12) { animation-delay: 0.65s; }
+        .memory-card:nth-child(13) { animation-delay: 0.8s; }
+        .memory-card:nth-child(14) { animation-delay: 0.95s; }
+        .memory-card:nth-child(15) { animation-delay: 0.1s; }
+        .memory-card:nth-child(16) { animation-delay: 0.25s; }
+        .memory-card:nth-child(17) { animation-delay: 0.4s; }
+        .memory-card:nth-child(18) { animation-delay: 0.55s; }
+        .memory-card:nth-child(19) { animation-delay: 0.7s; }
+        .memory-card:nth-child(20) { animation-delay: 0.85s; }
+        .memory-card:nth-child(21) { animation-delay: 0.12s; }
         .memory-card img {
             width: 100%;
             height: 100%;
@@ -1101,7 +1114,7 @@
         }
         /* ========== RESPONSIVE ========== */
         @media (max-width: 900px) {
-            .gallery-grid { grid-template-columns: repeat(4, 1fr); gap: 10px; }
+            .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
         }
         @media (max-width: 768px) {
             .hero-section h1 { font-size: 2.2rem; }
@@ -1118,7 +1131,7 @@
             .header-center { flex-direction: column; gap: 8px; }
             .header-clock { font-size: 1.2rem; justify-content: center; }
             .greeting { font-size: 0.9rem; justify-content: center; }
-            .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
             .love-whispers { flex-direction: column; gap: 10px; }
             .anniversary-popup .popup-content { padding: 2rem 1.5rem; }
             .anniversary-popup .popup-content h2 { font-size: 2.2rem; }
@@ -1140,7 +1153,7 @@
             .hero-section h1 { font-size: 1.8rem; }
         }
         @media (max-width: 400px) {
-            .gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+            .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 6px; }
             .memory-card { border-radius: 14px; }
             .login-card { padding: 1.5rem 1rem; }
             .brand h1 { font-size: 2rem; }
@@ -1293,7 +1306,7 @@
         <button class="modal-nav prev" id="prevImage"><i class="fas fa-chevron-left"></i></button>
         <button class="modal-nav next" id="nextImage"><i class="fas fa-chevron-right"></i></button>
         <img id="modalImage" src="" alt="Memory enlarged">
-        <div class="modal-counter" id="modalCounter">1 / 8</div>
+        <div class="modal-counter" id="modalCounter">1 / 21</div>
     </div>
 </div>
 
@@ -1339,8 +1352,7 @@
         'use strict';
 
         // =============================================
-        // FIX #1: Define firebaseConfig and initialize Firebase FIRST
-        // BEFORE any other code that depends on Firebase
+        // FIREBASE INITIALIZATION
         // =============================================
         console.log('🔍 [DEBUG] Starting Firebase initialization...');
 
@@ -1368,9 +1380,7 @@
         console.log('✅ [DEBUG] Firebase Realtime Database initialized');
 
         // =============================================
-        // FIX #2: Test Realtime Database write immediately
-        // after initialization, NOT inside initDashboard()
-        // This ensures the write happens regardless of login state
+        // REALTIME DATABASE TEST WRITE
         // =============================================
         console.log('🔍 [DEBUG] Attempting Realtime Database test write...');
 
@@ -1393,7 +1403,7 @@
             console.error('❌ [DEBUG] Realtime Database test write exception:', e);
         }
 
-        // Also verify database connection by reading
+        // Verify database connection
         console.log('🔍 [DEBUG] Verifying Realtime Database connection...');
         realtimeDB.ref('.info/connected').on('value', function(snap) {
             if (snap.val() === true) {
@@ -1404,20 +1414,35 @@
         });
 
         // =============================================
-        // FIX #3: Also set up a listener to confirm data exists
+        // IMAGE URLS - COMBINED (8 original + 13 new = 21 total)
         // =============================================
-        realtimeDB.ref('test').on('value', function(snapshot) {
-            const data = snapshot.val();
-            if (data) {
-                console.log('✅ [DEBUG] Data found at /test:', data);
-            } else {
-                console.log('🔍 [DEBUG] No data yet at /test - waiting for write...');
-            }
-        });
+        const IMAGE_URLS = [
+            // Original 8 images
+            'https://raw.githubusercontent.com/rajeshsanjay392-art/our-little-universe-images/refs/heads/main/IMG-20260426-WA0014.jpg',
+            'https://raw.githubusercontent.com/rajeshsanjay392-art/our-little-universe-images/refs/heads/main/IMG-20260606-WA0001.jpg',
+            'https://raw.githubusercontent.com/rajeshsanjay392-art/our-little-universe-images/refs/heads/main/IMG-20260710-WA0007.jpg',
+            'https://raw.githubusercontent.com/rajeshsanjay392-art/our-little-universe-images/refs/heads/main/IMG_20260514_222839_936.jpg',
+            'https://raw.githubusercontent.com/rajeshsanjay392-art/our-little-universe-images/refs/heads/main/IMG_20260709_231812_464.jpg',
+            'https://raw.githubusercontent.com/rajeshsanjay392-art/our-little-universe-images/refs/heads/main/IMG_20260710_164146_330.jpg',
+            'https://raw.githubusercontent.com/rajeshsanjay392-art/our-little-universe-images/refs/heads/main/Snapchat-1926817774.jpg',
+            'https://raw.githubusercontent.com/rajeshsanjay392-art/our-little-universe-images/refs/heads/main/Snapchat-877951513.jpg',
+            // New 13 images from More-images repository
+            'https://raw.githubusercontent.com/rajeshsanjay392-art/More-images/main/IMG-20260420-WA0021.jpg',
+            'https://raw.githubusercontent.com/rajeshsanjay392-art/More-images/main/IMG-20260426-WA0009.jpg',
+            'https://raw.githubusercontent.com/rajeshsanjay392-art/More-images/main/IMG-20260426-WA0005.jpg',
+            'https://raw.githubusercontent.com/rajeshsanjay392-art/More-images/main/IMG-20260426-WA0011.jpg',
+            'https://raw.githubusercontent.com/rajeshsanjay392-art/More-images/main/IMG-20260426-WA0012.jpg',
+            'https://raw.githubusercontent.com/rajeshsanjay392-art/More-images/main/IMG-20260530-WA0007.jpg',
+            'https://raw.githubusercontent.com/rajeshsanjay392-art/More-images/main/IMG-20260606-WA0006.jpg',
+            'https://raw.githubusercontent.com/rajeshsanjay392-art/More-images/main/IMG_20260504_184703_252.jpg',
+            'https://raw.githubusercontent.com/rajeshsanjay392-art/More-images/main/IMG_20260517_124925_642.jpg',
+            'https://raw.githubusercontent.com/rajeshsanjay392-art/More-images/main/IMG_20260529_195051_994.jpg',
+            'https://raw.githubusercontent.com/rajeshsanjay392-art/More-images/main/IMG_20260529_200446_301.jpg',
+            'https://raw.githubusercontent.com/rajeshsanjay392-art/More-images/main/Snapchat-1015664521.jpg',
+            'https://raw.githubusercontent.com/rajeshsanjay392-art/More-images/main/Snapchat-1780811880.jpg'
+        ];
 
-        // =============================================
-        // END OF FIREBASE FIXES - ALL EXISTING FEATURES BELOW REMAIN UNCHANGED
-        // =============================================
+        console.log('✅ [DEBUG] Loaded ' + IMAGE_URLS.length + ' images');
 
         // ========== CREDENTIALS ==========
         const VALID_USER = 'Sanvitha';
@@ -1483,17 +1508,6 @@
 
         // ========== CONSTANTS ==========
         const START_DATE = new Date(2026, 2, 27);
-
-        const IMAGE_URLS = [
-            'https://raw.githubusercontent.com/rajeshsanjay392-art/our-little-universe-images/refs/heads/main/IMG-20260426-WA0014.jpg',
-            'https://raw.githubusercontent.com/rajeshsanjay392-art/our-little-universe-images/refs/heads/main/IMG-20260606-WA0001.jpg',
-            'https://raw.githubusercontent.com/rajeshsanjay392-art/our-little-universe-images/refs/heads/main/IMG-20260710-WA0007.jpg',
-            'https://raw.githubusercontent.com/rajeshsanjay392-art/our-little-universe-images/refs/heads/main/IMG_20260514_222839_936.jpg',
-            'https://raw.githubusercontent.com/rajeshsanjay392-art/our-little-universe-images/refs/heads/main/IMG_20260709_231812_464.jpg',
-            'https://raw.githubusercontent.com/rajeshsanjay392-art/our-little-universe-images/refs/heads/main/IMG_20260710_164146_330.jpg',
-            'https://raw.githubusercontent.com/rajeshsanjay392-art/our-little-universe-images/refs/heads/main/Snapchat-1926817774.jpg',
-            'https://raw.githubusercontent.com/rajeshsanjay392-art/our-little-universe-images/refs/heads/main/Snapchat-877951513.jpg'
-        ];
 
         const QUOTES = [
             'Every heartbeat whispers your name.',
@@ -1845,23 +1859,6 @@
             });
 
             setInterval(spawnHeart, 3000);
-
-            // =============================================
-            // FIX #4: This code is now REMOVED from here
-            // The Realtime Database test write now happens
-            // immediately after Firebase initialization above
-            // =============================================
-            // OLD CODE (commented out):
-            // try {
-            //     const testRef = realtimeDB.ref('test');
-            //     testRef.set({ ... });
-            // } catch (e) { ... }
-            // 
-            // This was the BUG - the code was inside initDashboard()
-            // which only executes AFTER login, but Firebase Auth
-            // was failing, so the database write never happened.
-            // Now the write happens IMMEDIATELY after Firebase init.
-            // =============================================
         }
 
         // ========== ANNIVERSARY BAR ==========
@@ -1974,6 +1971,7 @@
                 });
                 galleryGrid.appendChild(card);
             });
+            console.log('✅ [DEBUG] Gallery built with ' + IMAGE_URLS.length + ' images');
         }
 
         // ========== LOVE EFFECT ==========
@@ -2237,6 +2235,7 @@
         });
 
         console.log('✅ [DEBUG] All Firebase services initialized and test write attempted.');
+        console.log('✅ [DEBUG] Total images loaded: ' + IMAGE_URLS.length);
 
     })();
 </script>
