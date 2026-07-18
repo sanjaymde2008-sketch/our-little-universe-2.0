@@ -603,7 +603,7 @@
             position: relative;
             z-index: 1;
         }
-        /* ========== GALLERY - FIXED 4-COLUMN LAYOUT WITH NORMAL SIZE ========== */
+        /* ========== GALLERY - FIXED 4-COLUMN LAYOUT ========== */
         .gallery-section {
             margin-bottom: 1.2rem;
         }
@@ -974,7 +974,7 @@
             transform: scale(0.97);
             background: #e6b6c9;
         }
-        /* ========== SURPRISE SLIDESHOW ========== */
+        /* ========== SURPRISE SLIDESHOW - FULL IMAGE SLIDESHOW ========== */
         .surprise-slideshow {
             display: none;
             position: fixed;
@@ -996,20 +996,22 @@
         }
         .surprise-slideshow .slide-container {
             position: relative;
-            max-width: 600px;
+            max-width: 700px;
             width: 100%;
             border-radius: 30px;
             overflow: hidden;
             box-shadow: 0 0 80px rgba(212, 139, 158, 0.3);
             background: #1a141b;
             aspect-ratio: 1 / 1;
+            max-height: 70vh;
         }
         .surprise-slideshow .slide-container img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
             display: none;
             border-radius: 30px;
+            background: #0d0a0f;
         }
         .surprise-slideshow .slide-container img.active {
             display: block;
@@ -1028,6 +1030,15 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(235, 180, 200, 0.15);
             max-width: 90%;
+        }
+        .surprise-slideshow .slide-counter {
+            color: #cfa3b2;
+            font-size: 0.9rem;
+            margin-top: 0.6rem;
+            background: rgba(0,0,0,0.4);
+            padding: 4px 16px;
+            border-radius: 40px;
+            border: 1px solid rgba(235, 180, 200, 0.1);
         }
         .surprise-slideshow .close-surprise {
             position: absolute;
@@ -1126,6 +1137,7 @@
             .anniversary-bar .ann-countdown { gap: 1rem; }
             .header-clock { font-size: 1.4rem; padding: 0.2rem 1rem; }
             .greeting { font-size: 0.95rem; }
+            .surprise-slideshow .slide-container { max-width: 95%; max-height: 60vh; }
         }
         @media (max-width: 600px) {
             .login-card { padding: 2rem 1.5rem; }
@@ -1143,7 +1155,7 @@
             .image-modal .modal-nav.next { right: 10px; }
             .image-modal .close-modal { width: 40px; height: 40px; font-size: 1.8rem; top: -5px; right: -5px; }
             .secret-letters-icon span { font-size: 1.2rem; }
-            .surprise-slideshow .slide-container { max-width: 95%; }
+            .surprise-slideshow .slide-container { max-width: 95%; max-height: 50vh; }
             .surprise-slideshow .close-surprise { top: 20px; right: 20px; font-size: 2.5rem; }
             .surprise-slideshow .slide-wish { font-size: 1.1rem; }
             .days-together span { font-size: 1.2rem; }
@@ -1163,6 +1175,7 @@
             .btn-glow { font-size: 1rem; padding: 14px 20px; }
             .input-group input { padding: 14px 16px 14px 44px; font-size: 0.9rem; }
             .input-group i { left: 14px; font-size: 0.9rem; }
+            .surprise-slideshow .slide-container { max-height: 40vh; }
         }
         /* Touch-friendly buttons on mobile */
         @media (hover: none) {
@@ -1322,15 +1335,14 @@
     </div>
 </div>
 
-<!-- ====== SURPRISE SLIDESHOW ====== -->
+<!-- ====== SURPRISE SLIDESHOW - FULL 21 IMAGES ====== -->
 <div id="surpriseSlideshow" class="surprise-slideshow">
     <button class="close-surprise" id="closeSurprise">&times;</button>
     <div class="slide-container" id="slideContainer">
-        <img id="slideImg1" src="" alt="Memory 1">
-        <img id="slideImg2" src="" alt="Memory 2">
-        <img id="slideImg3" src="" alt="Memory 3">
+        <!-- Images will be dynamically inserted here -->
     </div>
     <div class="slide-wish" id="slideWish">💖 Happy Birthday Savitha Mah! 💖</div>
+    <div class="slide-counter" id="slideCounter">1 / 21</div>
 </div>
 
 <!-- ====== BACKGROUND MUSIC ====== -->
@@ -1503,10 +1515,9 @@
 
         const surpriseSlideshow = document.getElementById('surpriseSlideshow');
         const closeSurprise = document.getElementById('closeSurprise');
-        const slideImg1 = document.getElementById('slideImg1');
-        const slideImg2 = document.getElementById('slideImg2');
-        const slideImg3 = document.getElementById('slideImg3');
+        const slideContainer = document.getElementById('slideContainer');
         const slideWish = document.getElementById('slideWish');
+        const slideCounter = document.getElementById('slideCounter');
         const surpriseSound = document.getElementById('surpriseSound');
 
         // ========== CONSTANTS ==========
@@ -1814,6 +1825,7 @@
 
             buildGallery();
             buildLettersPage();
+            buildSurpriseSlideshow();
             updateCounters();
             updateClock();
             updateAnniversaryBar();
@@ -1862,6 +1874,20 @@
             });
 
             setInterval(spawnHeart, 3000);
+        }
+
+        // ========== BUILD SURPRISE SLIDESHOW ==========
+        function buildSurpriseSlideshow() {
+            slideContainer.innerHTML = '';
+            IMAGE_URLS.forEach((url, index) => {
+                const img = document.createElement('img');
+                img.src = url;
+                img.alt = 'Memory ' + (index + 1);
+                img.dataset.index = index;
+                if (index === 0) img.classList.add('active');
+                slideContainer.appendChild(img);
+            });
+            console.log('✅ [DEBUG] Surprise slideshow built with ' + IMAGE_URLS.length + ' images');
         }
 
         // ========== ANNIVERSARY BAR ==========
@@ -2070,6 +2096,8 @@
 
         // ========== SURPRISE BOX ==========
         let surpriseRevealed = false;
+        let surpriseSlideInterval = null;
+        let currentSurpriseSlide = 0;
 
         function openGift() {
             giftBox.classList.toggle('open');
@@ -2102,52 +2130,53 @@
         }
 
         function showSurpriseSlideshow() {
-            const shuffled = [...IMAGE_URLS].sort(() => Math.random() - 0.5);
-            const selected = shuffled.slice(0, 3);
-            
-            slideImg1.src = selected[0];
-            slideImg2.src = selected[1];
-            slideImg3.src = selected[2];
-            
-            [slideImg1, slideImg2, slideImg3].forEach(img => {
-                img.style.objectFit = 'cover';
+            const slides = slideContainer.querySelectorAll('img');
+            if (slides.length === 0) return;
+
+            // Reset to first slide
+            currentSurpriseSlide = 0;
+            slides.forEach((img, index) => {
+                img.classList.toggle('active', index === 0);
             });
-            
-            slideImg1.classList.add('active');
-            slideImg2.classList.remove('active');
-            slideImg3.classList.remove('active');
-            
+
+            // Update counter and wish
+            slideCounter.textContent = '1 / ' + slides.length;
             const wish = BIRTHDAY_WISHES[Math.floor(Math.random() * BIRTHDAY_WISHES.length)];
             slideWish.textContent = '🎉 ' + wish;
-            
+
             surpriseSlideshow.classList.add('show');
             surpriseSound.play().catch(() => {});
             
             createFloatingColorEffect();
-            
-            let currentSlide = 0;
-            const slides = [slideImg1, slideImg2, slideImg3];
-            
-            const interval = setInterval(() => {
-                slides.forEach(s => s.classList.remove('active'));
-                currentSlide = (currentSlide + 1) % 3;
-                slides[currentSlide].classList.add('active');
+
+            // Clear any existing interval
+            if (surpriseSlideInterval) {
+                clearInterval(surpriseSlideInterval);
+            }
+
+            // Auto slideshow through ALL images
+            surpriseSlideInterval = setInterval(() => {
+                slides.forEach(img => img.classList.remove('active'));
+                currentSurpriseSlide = (currentSurpriseSlide + 1) % slides.length;
+                slides[currentSurpriseSlide].classList.add('active');
                 
+                // Update counter
+                slideCounter.textContent = (currentSurpriseSlide + 1) + ' / ' + slides.length;
+                
+                // Update wish
                 const newWish = BIRTHDAY_WISHES[Math.floor(Math.random() * BIRTHDAY_WISHES.length)];
                 slideWish.textContent = '🎉 ' + newWish;
                 createFloatingColorEffect();
             }, 3000);
-            
-            surpriseSlideshow._interval = interval;
-            
+
             for (let i = 0; i < 40; i++) setTimeout(createConfetti, i * 50);
         }
 
         function closeSurpriseSlideshow() {
             surpriseSlideshow.classList.remove('show');
-            if (surpriseSlideshow._interval) {
-                clearInterval(surpriseSlideshow._interval);
-                surpriseSlideshow._interval = null;
+            if (surpriseSlideInterval) {
+                clearInterval(surpriseSlideInterval);
+                surpriseSlideInterval = null;
             }
             surpriseSound.pause();
             document.querySelectorAll('.confetti-piece, .float-color').forEach(el => el.remove());
